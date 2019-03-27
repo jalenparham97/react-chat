@@ -1,5 +1,7 @@
 import React, { Component } from 'react'
 import firebase from '../../db/firebase'
+import md5 from 'md5'
+import db from '../../db/db'
 import {
   Grid,
   Form,
@@ -16,13 +18,45 @@ export default class Register extends Component {
     username: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    error: [],
+    loading: false,
+    userRef: db.collection('users')
+  }
+
+  isFormEmpty = ({ username, email, password, confirmPassword }) => {
+    return (
+      !username.length ||
+      !email.length ||
+      !password.length ||
+      !confirmPassword.length
+    )
+  }
+
+  isPasswordValid = ({ password, confirmPassword }) => {
+    if (password.length < 6 || confirmPassword.length < 6) {
+      return false
+    } else if (password !== confirmPassword) {
+      return false
+    } else {
+      return true
+    }
   }
 
   isFormValid = () => {
-    if (this.isFormEmpty()) {
-    } else if (!this.isPasswordValid()) {
+    let errors = []
+    let error
+
+    if (this.isFormEmpty(this.state)) {
+      error = { message: 'Please fill in all fields!' }
+      this.setState({ errors: errors.concat(error) })
+      return false
+    } else if (!this.isPasswordValid(this.state)) {
+      error = { message: 'Password is invalid!' }
+      this.setState({ errors: errors.concat(error) })
+      return false
     } else {
+      // Form Valid
       return true
     }
   }
@@ -34,23 +68,52 @@ export default class Register extends Component {
   handleSubmit = e => {
     e.preventDefault()
     if (this.isFormValid) {
+      this.setState({ errors: [], loading: true })
       firebase
         .auth()
         .createUserWithEmailAndPassword(this.state.email, this.state.password)
         .then(user => {
+          // this.setState({ loading: false })
+          user.user
+            .updateProfile({
+              displayName: this.state.username,
+              photoURL: `http://gravitar.com/avatar/${md5(
+                user.user.email
+              )}?d=identicon`
+            })
+            .then(() => {
+              this.setState({ loading: false })
+            })
+            .catch(err => {
+              console.log(err)
+              this.setState({
+                errors: this.state.errors.concat(err),
+                loading: false
+              })
+            })
           console.log(user)
         })
-        .catch(err => console.error(err))
+        .catch(err => {
+          console.log(err)
+          this.setState({
+            errors: this.state.errors.concat(err),
+            loading: false
+          })
+        })
     }
   }
 
+  saveUser = user => {
+    return this.state.usersRef
+  }
+
   render() {
-    const { username, email, password, confirmPassword } = this.state
+    const { username, email, password, confirmPassword, loading } = this.state
 
     return (
       <Grid textAlign="center" verticalAlign="middle" className="app">
         <Grid.Column style={{ maxWidth: 450 }}>
-          <Header as="h2" icon color="orange" textAlign="center">
+          <Header as="h1" icon color="orange" textAlign="center">
             <Icon name="puzzle piece" color="orange" />
             Register for ReactChat
           </Header>
@@ -97,7 +160,13 @@ export default class Register extends Component {
                 value={confirmPassword}
               />
 
-              <Button color="orange" fluid size="large">
+              <Button
+                disabled={loading}
+                className={loading ? 'loading' : ''}
+                color="orange"
+                fluid
+                size="large"
+              >
                 Submit
               </Button>
             </Segment>
