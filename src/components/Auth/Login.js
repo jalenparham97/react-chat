@@ -15,45 +15,8 @@ export default class Login extends Component {
   state = {
     email: '',
     password: '',
-    error: [],
+    errors: [],
     loading: false
-  }
-
-  isFormEmpty = ({ username, email, password, confirmPassword }) => {
-    return (
-      !username.length ||
-      !email.length ||
-      !password.length ||
-      !confirmPassword.length
-    )
-  }
-
-  isPasswordValid = ({ password, confirmPassword }) => {
-    if (password.length < 6 || confirmPassword.length < 6) {
-      return false
-    } else if (password !== confirmPassword) {
-      return false
-    } else {
-      return true
-    }
-  }
-
-  isFormValid = () => {
-    let errors = []
-    let error
-
-    if (this.isFormEmpty(this.state)) {
-      error = { message: 'Please fill in all fields!' }
-      this.setState({ errors: errors.concat(error) })
-      return false
-    } else if (!this.isPasswordValid(this.state)) {
-      error = { message: 'Password is invalid!' }
-      this.setState({ errors: errors.concat(error) })
-      return false
-    } else {
-      // Form Valid
-      return true
-    }
   }
 
   handleChange = e => {
@@ -62,32 +25,12 @@ export default class Login extends Component {
 
   handleSubmit = e => {
     e.preventDefault()
-    if (this.isFormValid) {
+    if (this.isFormValid(this.state)) {
       this.setState({ errors: [], loading: true })
       firebase
         .auth()
-        .createUserWithEmailAndPassword(this.state.email, this.state.password)
+        .signInWithEmailAndPassword(this.state.email, this.state.password)
         .then(user => {
-          // this.setState({ loading: false })
-          user.user
-            .updateProfile({
-              displayName: this.state.username,
-              photoURL: `http://gravitar.com/avatar/${md5(
-                user.user.email
-              )}?d=identicon`
-            })
-            .then(() => {
-              this.saveUser(user).then(() => {
-                console.log('user saved')
-              })
-            })
-            .catch(err => {
-              console.log(err)
-              this.setState({
-                errors: this.state.errors.concat(err),
-                loading: false
-              })
-            })
           console.log(user)
         })
         .catch(err => {
@@ -100,28 +43,20 @@ export default class Login extends Component {
     }
   }
 
+  isFormValid = ({ email, password }) => email && password
+
   render() {
-    const { username, email, password, confirmPassword, loading } = this.state
+    const { email, password, erros, loading } = this.state
 
     return (
       <Grid textAlign="center" verticalAlign="middle" className="app">
         <Grid.Column style={{ maxWidth: 450 }}>
-          <Header as="h1" icon color="orange" textAlign="center">
-            <Icon name="puzzle piece" color="orange" />
-            Register for ReactChat
+          <Header as="h1" icon color="violet" textAlign="center">
+            <Icon name="code branch" color="violet" />
+            Login to ReactChat
           </Header>
           <Form onSubmit={this.handleSubmit} size="large">
             <Segment stacked>
-              <Form.Input
-                fluid
-                type="text"
-                name="username"
-                icon="user"
-                iconPosition="left"
-                placeholder="Username"
-                onChange={this.handleChange}
-                value={username}
-              />
               <Form.Input
                 fluid
                 type="email"
@@ -142,21 +77,11 @@ export default class Login extends Component {
                 onChange={this.handleChange}
                 value={password}
               />
-              <Form.Input
-                fluid
-                type="password"
-                name="confirmPassword"
-                icon="repeat"
-                iconPosition="left"
-                placeholder="Confirm Password"
-                onChange={this.handleChange}
-                value={confirmPassword}
-              />
 
               <Button
                 disabled={loading}
                 className={loading ? 'loading' : ''}
-                color="orange"
+                color="violet"
                 fluid
                 size="large"
               >
@@ -165,7 +90,7 @@ export default class Login extends Component {
             </Segment>
           </Form>
           <Message>
-            Not a user? <Link to="/register">Register</Link>
+            Don't have an account? <Link to="/register">Register</Link>
           </Message>
         </Grid.Column>
       </Grid>

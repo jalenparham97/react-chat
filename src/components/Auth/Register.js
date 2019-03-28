@@ -21,7 +21,7 @@ export default class Register extends Component {
     confirmPassword: '',
     error: [],
     loading: false,
-    userRef: db.collection('users')
+    usersRef: db.collection('users')
   }
 
   isFormEmpty = ({ username, email, password, confirmPassword }) => {
@@ -82,7 +82,7 @@ export default class Register extends Component {
               )}?d=identicon`
             })
             .then(() => {
-              this.setState({ loading: false })
+              this.saveUser(user).then(() => console.log('User Saved'))
             })
             .catch(err => {
               console.log(err)
@@ -104,7 +104,11 @@ export default class Register extends Component {
   }
 
   saveUser = user => {
-    return this.state.usersRef
+    return this.state.usersRef.doc(user.user.uid).set({
+      name: user.user.displayName,
+      avatar: user.user.photoURL,
+      userId: user.user.uid
+    })
   }
 
   render() {
