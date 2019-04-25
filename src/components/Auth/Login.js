@@ -30,8 +30,8 @@ export default class Login extends Component {
       firebase
         .auth()
         .signInWithEmailAndPassword(this.state.email, this.state.password)
-        .then(user => {
-          console.log(user)
+        .then(() => {
+          console.log('Signed In')
         })
         .catch(err => {
           console.log(err)
@@ -46,7 +46,7 @@ export default class Login extends Component {
   isFormValid = ({ email, password }) => email && password
 
   render() {
-    const { email, password, erros, loading } = this.state
+    const { email, password, loading } = this.state
 
     return (
       <Grid textAlign="center" verticalAlign="middle" className="app">

@@ -6,6 +6,7 @@
     "emoji-mart": "^2.10.0",
     "firebase": "^5.9.1",
     "md5": "^2.2.1",
+    "mime-types": "^2.1.22",
     "moment": "^2.24.0",
     "react": "^16.8.5",
     "react-avatar-editor": "^11.0.6",
@@ -33,5 +34,8 @@
     "not dead",
     "not ie <= 11",
     "not op_mini all"
-  ]
+  ],
+  "devDependencies": {
+    "redux-devtools-extension": "^2.13.8"
+  }
 }
