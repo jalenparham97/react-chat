@@ -48,12 +48,12 @@ export class MessageForm extends Component {
   }
 
   sendMessage = () => {
-    const { messagesRef } = this.props
+    const { getMessagesRef } = this.props
     const { message } = this.state
 
     if (message) {
       this.setState({ loading: true })
-      messagesRef
+      getMessagesRef
         .add(this.createMessage())
         .then(() => {
           this.setState({ loading: false, message: '' })
@@ -72,9 +72,18 @@ export class MessageForm extends Component {
     }
   }
 
+  getPath = () => {
+    if (this.props.isPrivateChannel) {
+      console.log(this.props.isPrivateChannel)
+      return `chat/private-${this.state.channel.id}`
+    } else {
+      return 'chat/public'
+    }
+  }
+
   uploadFileToDB = (file, metadata) => {
-    const ref = this.props.messagesRef
-    const filePath = `chat/public/${uuidv4()}.jpg`
+    const ref = this.props.getMessagesRef
+    const filePath = `${this.getPath()}/${uuidv4()}.jpg`
 
     this.setState(
       {

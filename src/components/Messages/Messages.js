@@ -8,6 +8,7 @@ import Message from './Message'
 
 export default class Messages extends Component {
   state = {
+    privateChannel: this.props.isPrivateChannel,
     channel: this.props.currentChannel,
     user: this.props.currentUser,
     messages: [],
@@ -32,7 +33,9 @@ export default class Messages extends Component {
 
   addMessageListener = channelId => {
     let loadedMessages = []
-    db.collection(`channels/${channelId}/messages`).onSnapshot(snapShot => {
+    let ref = this.getMessagesRef(channelId)
+    console.log(ref)
+    ref.onSnapshot(snapShot => {
       snapShot.docChanges().forEach(change => {
         if (change.type === 'added') {
           loadedMessages.push(change.doc.data())
@@ -44,6 +47,19 @@ export default class Messages extends Component {
         }
       })
     })
+  }
+
+  getMessagesRef = channelId => {
+    const { privateChannel } = this.state
+    console.log(privateChannel)
+    let ref
+    if (privateChannel) {
+      ref = db.collection(`privateMessages/${channelId}/messages`)
+    } else {
+      ref = db.collection(`channels/${channelId}/messages`)
+    }
+    console.log(ref)
+    return ref
   }
 
   handleSearchChange = e => {
@@ -94,11 +110,15 @@ export default class Messages extends Component {
       />
     ))
 
-  displayChannelName = channel => (channel ? `#${channel.name}` : '')
+  displayChannelName = channel => {
+    return channel
+      ? `${this.state.privateChannel ? '@' : '#'}${channel.name}`
+      : ''
+  }
 
   render() {
     // prettier-ignore
-    const { channel, user, messages, numUniqueUsers, searchResults, searchTerm, searchLoading } = this.state
+    const { channel, user, messages, numUniqueUsers, searchResults, searchTerm, searchLoading, privateChannel } = this.state
 
     return (
       <React.Fragment>
@@ -107,6 +127,7 @@ export default class Messages extends Component {
           numUniqueUsers={numUniqueUsers}
           handleSearchChange={this.handleSearchChange}
           searchLoading={searchLoading}
+          isPrivateChannel={privateChannel}
         />
 
         <Segment>
@@ -123,6 +144,12 @@ export default class Messages extends Component {
             `channels/${channel && channel.id}/messages`
           )}
           currentUser={user}
+          isPrivateChannel={privateChannel}
+          getMessagesRef={
+            channel && channel.id
+              ? this.getMessagesRef(channel.id)
+              : 'No channel Id'
+          }
         />
       </React.Fragment>
     )
